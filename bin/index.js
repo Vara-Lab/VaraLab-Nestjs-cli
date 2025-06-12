@@ -36,11 +36,21 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const child_process_1 = require("child_process");
+const utils_1 = require("./utils");
 const fs = __importStar(require("fs"));
+const nestjs_data_1 = require("./nestjs_data");
 const program = new commander_1.Command();
 function createProgram(idlPath) {
     console.log('📦 Generating TypeScript client libraries from Sails IDL file ...');
+    const toDelete = [
+        'package.json',
+        'tsconfig.json'
+    ];
     (0, child_process_1.execSync)(`npx sails-js-cli generate ${idlPath} -o contract_client`);
+    (0, utils_1.copyFile)(`${utils_1.CLIENT_ROOT}/src/global.d.ts`, `${utils_1.CLIENT_ROOT}/global.d.ts`);
+    (0, utils_1.copyFile)(`${utils_1.CLIENT_ROOT}/src/lib.ts`, `${utils_1.CLIENT_ROOT}/lib.ts`);
+    (0, utils_1.deleteDir)(`${utils_1.CLIENT_ROOT}/src`);
+    toDelete.forEach(file => (0, utils_1.deleteFile)(`${utils_1.CLIENT_ROOT}/${file}`));
 }
 program
     .name('idl-to-nestjs')
@@ -50,19 +60,61 @@ program
     .argument('<idl-file>', 'Path to the .idl file')
     .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
     .action(async (idlFile, options) => {
+    console.log('Path: ', utils_1.CURRENT_DIR);
     try {
         createProgram(idlFile);
         const idlContent = fs.readFileSync(idlFile, 'utf8');
         // const parsedIDL = parseIDL(idlContent);
         // await generateNestProject(parsedIDL, options.output);
         console.log(`✅ Servidor NestJS generado en: ${options.output}`);
+        console.log(JSON.stringify(nestjs_data_1.packageJsonData));
     }
     catch (e) {
         const err = e;
+        if (fs.existsSync(utils_1.CLIENT_ROOT)) {
+            (0, utils_1.deleteDir)(utils_1.CLIENT_ROOT);
+        }
         console.error(`❌ Error: ${err.message}`);
     }
 });
 program.parse(process.argv);
+/*
+{
+  "name": "SailsProgram",
+  "type": "module",
+  "dependencies": {
+    "@gear-js/api": "^0.42.0",
+    "@polkadot/api": "^15.9.1",
+    "sails-js": "0.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
+
+
+
+
+
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "outDir": "lib"
+  },
+  "include": [
+    "src"
+  ]
+}
+*/
 // import { SailsIdlParser, TypeDef } from "sails-js-parser";
 // import { EnumDef } from "sails-js-parser";
 // import { execSync } from "child_process";

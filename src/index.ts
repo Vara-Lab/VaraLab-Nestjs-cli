@@ -1,47 +1,35 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { parseIDL } from './parser';
 import { generateNestProject } from './generator';
 import { execSync } from 'child_process';
+import { 
+  copyFile, 
+  deleteDir, 
+  deleteFile, 
+  CLIENT_ROOT, 
+  CURRENT_DIR
+} from './utils'; 
 import path from 'path';
 import * as fs from 'fs';
+import { packageJsonData } from './nestjs_data';
 
-const CLIENT_ROOT = 'contract_client';
 
 const program = new Command();
 
-function copyFile(filePath: string, dest: string) {
-  fs.copyFileSync(
-    path.join(__dirname, filePath), 
-    path.join(__dirname, dest)
-  );
-}
-
-function deleteFile(filePath: string) {
-  fs.rmSync(path.join(__dirname, filePath));
-}
-
 function createProgram(idlPath: string) {
   console.log('📦 Generating TypeScript client libraries from Sails IDL file ...');
+
   const toDelete = [
-    'src',
     'package.json',
     'tsconfig.json'
-  ]
+  ];
+
   execSync(`npx sails-js-cli generate ${idlPath} -o contract_client`);
   copyFile(`${CLIENT_ROOT}/src/global.d.ts`, `${CLIENT_ROOT}/global.d.ts`);
   copyFile(`${CLIENT_ROOT}/src/lib.ts`, `${CLIENT_ROOT}/lib.ts`);
-
-  deleteFile(`${CLIENT_ROOT}/src`);
-  deleteFile(`${CLIENT_ROOT}/package.json`);
-  deleteFile
-
-  // fs.copyFileSync(
-  //   path.join(__dirname, `${CLIENT_ROOT}/src/global.d.ts`), 
-  //   path.join(__dirname, `${CLIENT_ROOT}/global.d.ts`)
-  // );
-  
+  deleteDir(`${CLIENT_ROOT}/src`);
+  toDelete.forEach(file => deleteFile(`${CLIENT_ROOT}/${file}`));
 }
 
 program
@@ -53,15 +41,25 @@ program
   .argument('<idl-file>', 'Path to the .idl file')
   .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
   .action(async (idlFile, options) => {
+    console.log('Path: ', CURRENT_DIR);
+    
 
     try {
       createProgram(idlFile);
       const idlContent = fs.readFileSync(idlFile, 'utf8');
+
       // const parsedIDL = parseIDL(idlContent);
       // await generateNestProject(parsedIDL, options.output);
+
       console.log(`✅ Servidor NestJS generado en: ${options.output}`);
+      console.log(JSON.stringify(packageJsonData));
     } catch (e) {
       const err = e as Error;
+
+      if (fs.existsSync(CLIENT_ROOT)) {
+        deleteDir(CLIENT_ROOT);
+      }
+
       console.error(`❌ Error: ${err.message}`);
     }
   });

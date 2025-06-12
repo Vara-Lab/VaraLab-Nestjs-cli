@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ParsedIDL } from './parser';
 
+
+
 export async function generateNestProject(parsedIDL: ParsedIDL, outputDir: string) {
   fs.mkdirSync(outputDir, { recursive: true });
   const servicesDir = path.join(outputDir, 'src/services');

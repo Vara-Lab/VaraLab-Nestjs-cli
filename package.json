@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "description": "CLI para generar servidores NestJS a partir de archivos IDL",
   "bin": {
-    "idl-to-nestjs": "./bin/cli.js"
+    "idlnest": "./bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/index.ts",
-    "run": "pnpm run build && pnpm run start",
+    "run": "pnpm run build && node bin/cli.js",
+    "bl" : "pnpm run build && npm link",
     "test": "jest"
   },
   "author": "Tu Nombre",
