@@ -1,36 +1,20 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { generateNestProject } from './generator';
+// import { generateNestProject } from './generator';
 import { execSync } from 'child_process';
 import { 
-  copyFile, 
-  deleteDir, 
-  deleteFile, 
+  deleteDir,
+  pathExists,
   CLIENT_ROOT, 
   CURRENT_DIR
 } from './utils'; 
-import path from 'path';
+import { createClient } from './client_generator';
+import { IdlProgram } from './IdlProgram';
+import { generateNestProject } from './nestjs_generator';
 import * as fs from 'fs';
-import { packageJsonData } from './nestjs_data';
-
 
 const program = new Command();
-
-function createProgram(idlPath: string) {
-  console.log('📦 Generating TypeScript client libraries from Sails IDL file ...');
-
-  const toDelete = [
-    'package.json',
-    'tsconfig.json'
-  ];
-
-  execSync(`npx sails-js-cli generate ${idlPath} -o contract_client`);
-  copyFile(`${CLIENT_ROOT}/src/global.d.ts`, `${CLIENT_ROOT}/global.d.ts`);
-  copyFile(`${CLIENT_ROOT}/src/lib.ts`, `${CLIENT_ROOT}/lib.ts`);
-  deleteDir(`${CLIENT_ROOT}/src`);
-  toDelete.forEach(file => deleteFile(`${CLIENT_ROOT}/${file}`));
-}
 
 program
   .name('idl-to-nestjs')
@@ -42,17 +26,23 @@ program
   .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
   .action(async (idlFile, options) => {
     console.log('Path: ', CURRENT_DIR);
-    
 
     try {
-      createProgram(idlFile);
-      const idlContent = fs.readFileSync(idlFile, 'utf8');
+      console.log('⚙️ Generating types ...')
+      // createClient(idlFile);
 
-      // const parsedIDL = parseIDL(idlContent);
+      const idlContent = fs.readFileSync(idlFile, 'utf8');
+      const idlProgram = await IdlProgram.new(idlContent);
+
+      await generateNestProject(idlProgram, options.output, CURRENT_DIR);
+
+      // await generateNestProject(
+      //   idlProgram,
+      //   ''
+      // );
       // await generateNestProject(parsedIDL, options.output);
 
       console.log(`✅ Servidor NestJS generado en: ${options.output}`);
-      console.log(JSON.stringify(packageJsonData));
     } catch (e) {
       const err = e as Error;
 

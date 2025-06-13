@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "ts-node src/index.ts",
     "run": "pnpm run build && node bin/cli.js",
-    "bl" : "pnpm run build && npm link",
+    "bl": "pnpm run build && npm link",
     "test": "jest"
   },
   "author": "Tu Nombre",
@@ -17,7 +17,8 @@
   "dependencies": {
     "@types/jest": "^29.5.14",
     "commander": "^11.0.0",
-    "sails-js-parser": "^0.4.2"
+    "sails-js-parser": "^0.4.2",
+    "ts-morph": "^26.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.1",

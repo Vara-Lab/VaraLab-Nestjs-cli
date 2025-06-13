@@ -4,6 +4,10 @@ import * as fs from 'fs';
 export const CLIENT_ROOT = 'contract_client';
 export const CURRENT_DIR = process.cwd();
 
+export function pathExists(sourcePath: string) {
+  return fs.existsSync(sourcePath);
+}
+
 export function copyFile(filePath: string, dest: string) {
   fs.copyFileSync(
     path.join(CURRENT_DIR, filePath), 
