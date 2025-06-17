@@ -7,7 +7,7 @@ exports.moduleGenerator = moduleGenerator;
 const utils_1 = require("../utils");
 const path_1 = __importDefault(require("path"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
-function moduleGenerator(serviceName, nestjsSrcPath, idlProgram) {
+function moduleGenerator(serviceName, nestjsSrcPath, idlProgram, port) {
     const serviceNameLowerCase = serviceName.toLocaleLowerCase();
     const modulePath = path_1.default.join(nestjsSrcPath, serviceNameLowerCase);
     const moduleFilePath = path_1.default.join(modulePath, `${serviceNameLowerCase}.module.ts`);
@@ -16,7 +16,7 @@ function moduleGenerator(serviceName, nestjsSrcPath, idlProgram) {
     const serviceCommandNames = idlProgram.getServiceCommandsNames(serviceName);
     const serviceQueryNames = idlProgram.getServiceQueriesNames(serviceName);
     const nestjsModuleFileCode = baseModuleCode(serviceName);
-    const nestJsControllerData = createController(idlProgram, serviceName, serviceCommandNames, serviceQueryNames);
+    const nestJsControllerData = createController(idlProgram, serviceName, serviceCommandNames, serviceQueryNames, port);
     const nestjsServiceCode = createServiceCode(idlProgram, serviceName, serviceCommandNames, serviceQueryNames);
     fs_extra_1.default.mkdir(modulePath);
     (0, utils_1.createFile)(moduleFilePath, nestjsModuleFileCode);
@@ -40,7 +40,7 @@ import { JwtService } from '@nestjs/jwt';
 })
 export class ${serviceName}Module {}`;
 }
-function createController(idlProgram, serviceName, commandNames, queryNames) {
+function createController(idlProgram, serviceName, commandNames, queryNames, port) {
     const lines = [];
     const functionsUrl = [];
     const serviceNameLower = serviceName.toLowerCase();
@@ -66,7 +66,7 @@ function createController(idlProgram, serviceName, commandNames, queryNames) {
         functionsUrl.push({
             serviceName,
             funcName: commandName,
-            url: `https://localhost:port/${serviceNameLower}/command/${commandNameLower}`,
+            url: `https://localhost:${port}/${serviceNameLower}/command/${commandNameLower}`,
             isQuery: false
         });
     });

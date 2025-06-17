@@ -1,6 +1,6 @@
 {
   "name": "cli-idl-to-nestjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CLI para generar servidores NestJS a partir de archivos IDL",
   "bin": {
     "varalab-nestjs": "./bin/cli.js"

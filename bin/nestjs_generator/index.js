@@ -24,18 +24,25 @@ async function generateNestProject(data) {
     const readmePath = path_1.default.join(nestjsPath, 'README.md');
     const readmeContent = fs_extra_1.default.readFileSync(readmePath, 'utf8');
     const temp = readmeContent.indexOf('<p align="center">');
-    const readmeFileContent = readmeContent.substring(0, temp);
-    const lines = [];
+    let readmeFileContent = readmeContent.substring(0, temp);
+    const lines = [
+        readmeFileContent,
+    ];
     lines.push('### Nestjs url');
     lines.push('Following are the available url for nestjs server based on the provided idl:');
     for (const serviceName of servicesNames) {
-        const moduleUrls = (0, module_generator_1.moduleGenerator)(serviceName, nestJsSrcDir, idlProgram);
+        const moduleUrls = (0, module_generator_1.moduleGenerator)(serviceName, nestJsSrcDir, idlProgram, port);
         moduleUrls.forEach(url => {
             const { serviceName, funcName, url: urlStr, isQuery } = url;
             const functionType = url.isQuery ? 'command' : 'query';
             lines.push(`- Url for ${funcName} ${functionType} in service ${serviceName}: *${urlStr}*`);
         });
     }
+    lines.push('');
+    lines.push(`<p align="center">`);
+    lines.push(`    <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />`);
+    lines.push(`</p>`);
+    const readmeCode = lines.join('\n');
     console.log('Nestjs Modules created ✅');
     (0, main_module_generator_1.createMainModule)(nestJsSrcDir, servicesNames);
     console.log('NestJs Main module created ✅');
@@ -47,9 +54,6 @@ async function generateNestProject(data) {
         contractId,
         contractIdl
     });
+    fs_extra_1.default.writeFileSync(readmePath, readmeCode);
     console.log('Env file created ✅');
 }
-/*
-<p align="center">
-  <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />
-</p>*/ 
