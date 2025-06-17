@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 
 export const CONTRACT_CLIENT_OUT_DIR = 'contract_client';
 export const CURRENT_DIR = process.cwd();
-export const GITHUB_BASE_NESTJS = 'https://github.com/David-HernandezM/nestjs-server-testing.git';
+export const GITHUB_BASE_NESTJS = 'https://github.com/Vara-Lab/NestJs-Base-Template.git';
 
 export async function checkAndGetIdlProgram(idlPath: string): Promise<IdlProgram> {
   const idlContent = fs.readFileSync(idlPath, 'utf8');

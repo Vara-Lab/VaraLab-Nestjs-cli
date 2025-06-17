@@ -1,9 +1,0 @@
-service UserService {
-  getUser(id: string)
-  createUser(name: string, email: string)
-}
-
-service ProductService {
-  listProducts()
-  getProduct(id: string)
-}

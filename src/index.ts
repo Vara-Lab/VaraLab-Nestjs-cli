@@ -49,6 +49,8 @@ program
         { type: 'input', name: 'contractId', message: 'Contract address: ', default: '0x' },
       ]);
 
+      console.log('');
+
       // create the output dir
       fs.mkdirSync(output);
       
@@ -71,7 +73,7 @@ program
       // Create all the nestjs server
       await generateNestProject(nestJsData);
       
-      console.log(`🎉 NestJS server created in: ${output}`);
+      console.log(`\n🎉 NestJS server created in: ${output}`);
     } catch (e) {
       const err = e as Error;
 

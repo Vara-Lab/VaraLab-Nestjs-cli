@@ -1,20 +1,29 @@
 # CLI IDL to NestJS
 
-CLI para generar servidores NestJS a partir de archivos `.idl`.
+CLI that create a nestjs server from a `.idl`.
 
-## Uso
+## How to use
+
+### Basic usage
+
+Basic cli command to create the nestjs server, he server will be in the `generated-server` directory.
 
 ```bash
-npx cli-idl-to-nestjs ./example.idl --output my-server
+npx varalab-nestjs ./example.idl
+```
+
+### Use with specific directory
+
+cli command to specify the directory where the nestjs server will be located, in both cases `my-server`:
+
+```bash
+npx varalab-nestjs ./example.idl --output my-server
+npx varalab-nestjs ./example.idl -o my-server
 ```
 
 ## Tests
 
 ```bash
-npm install
-npm run test
+pnpm i
+pnpm run test
 ```
-
----
-
-Incluye un ejemplo: `example.idl`

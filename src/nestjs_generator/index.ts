@@ -47,13 +47,47 @@ export async function generateNestProject(data: NestJsData) {
 
   const servicesNames = idlProgram.serviceNames().filter(serviceName => serviceName != 'KeyringService');
 
+  const readmePath = path.join(nestjsPath, 'README.md');
+  const readmeContent = fs.readFileSync(readmePath, 'utf8');
+  const temp = readmeContent.indexOf('<p align="center">');
+  let readmeFileContent = readmeContent.substring(0, temp);
+
+  const lines: string[] = [
+    readmeFileContent,
+  ];
+
+  lines.push('### Nestjs url');
+  lines.push('Following are the available url for nestjs server based on the provided idl:');
+
   for (const serviceName of servicesNames) {
-    moduleGenerator(
+    const moduleUrls = moduleGenerator(
       serviceName,
       nestJsSrcDir,
-      idlProgram
-    )
+      idlProgram,
+      port
+    );
+
+    moduleUrls.forEach(url => {
+      const {
+        serviceName,
+        funcName,
+        url: urlStr,
+        isQuery
+      } = url;
+
+      const functionType = url.isQuery ? 'command' : 'query';
+      lines.push(`- Url for ${funcName} ${functionType} in service ${serviceName}: *${urlStr}*`);
+
+    });
   }
+
+  lines.push('');
+  lines.push(`<p align="center">`);
+  lines.push(`    <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />`);
+  lines.push(`</p>`);
+
+  const readmeCode = lines.join('\n');
+
   console.log('Nestjs Modules created ✅');
   
   createMainModule(nestJsSrcDir, servicesNames);
@@ -69,5 +103,8 @@ export async function generateNestProject(data: NestJsData) {
     contractIdl
   });
 
+  fs.writeFileSync(readmePath, readmeCode);
+
   console.log('Env file created ✅');
 }
+

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "CLI para generar servidores NestJS a partir de archivos IDL",
   "bin": {
-    "idlnest": "./bin/cli.js"
+    "varalab-nestjs": "./bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
