@@ -1,7 +1,15 @@
-export interface RootFile {
+export interface FileData {
   name: string;
   content: string;
 }
+
+export const keyringServiceMethods = [
+  'BindKeyringDataToUserAddress',
+  'BindKeyringDataToUserCodedName',
+  'KeyringAccountData',
+  'KeyringAddressFromUserAddress',
+  'KeyringAddressFromUserCodedName'
+];
 
 export const packageJsonData = {
   "name": "nestjs_server",
@@ -94,7 +102,7 @@ export const packageJsonData = {
   }
 }
 
-export const rootFilesAndContent: RootFile[] = [
+export const rootFilesAndContent: FileData[] = [
   {
     name: '.env',
     content: `jwtSecretKey=
@@ -103,7 +111,9 @@ RPC_URL=
 NODE_ENV=development
 PORT=
 SPONSOR_NAME=
-SPONSOR_MNEMONIC=`
+SPONSOR_MNEMONIC=
+CONTRACT_ID=
+CONTRACT_IDL=`
   },
   {
     name: '.gitignore',
@@ -159,7 +169,8 @@ export default tseslint.config(
     PORT: string;
     SPONSOR_NAME: string;
     SPONSOR_MNEMONIC: string;
-    
+    CONTRACT_ID: \`0x\${string}\`;
+    CONTRACT_IDL: string;
   }
 }`
   },
@@ -176,7 +187,7 @@ export default tseslint.config(
   },
   {
     name: 'package.json',
-    content: JSON.stringify(packageJsonData)
+    content: JSON.stringify(packageJsonData, null, 2)
   },
   {
     name: 'README.md',
@@ -246,3 +257,98 @@ pnpm run start:dev
 }`
   }
 ]
+
+export const srcFiles: FileData[] = [
+  {
+    name: 'app.controller.ts',
+    content: `import { 
+  Controller, 
+  Post, 
+  Body 
+} from '@nestjs/common';
+
+@Controller()
+export class AppController {
+  @Post('/')
+  receiveHello(@Body() data: any): string {
+    return 'Hello!';
+  }
+}`
+  },
+  {
+    name: 'app.module.ts',
+    content: `import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AuthModule } from './auth/auth.module';
+import { KeyringModule } from './keyring/keyring.module';
+import { ConfigModule } from '@nestjs/config';
+import { SailscallsService } from './sailscallsClientService/sailscallsClient.service';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    AuthModule,
+    KeyringModule, 
+  ],
+  controllers: [AppController],
+  providers: [SailscallsService],
+})
+export class AppModule {}`
+  },
+  {
+    name: 'consts.ts',
+    content: `import { HexString } from '@gear-js/api';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+export const INITIAL_BLOCKS_FOR_VOUCHER: number = 1_200; // one hour
+export const INITIAL_VOUCHER_TOKENS: number = 2;
+export const NETWORK: string = process.env.RPC_URL;
+export const SPONSOR_NAME: string = process.env.SPONSOR_NAME;
+export const SPONSOR_MNEMONIC: string = process.env.SPONSOR_MNEMONIC;
+export const CONTRACT_ID: HexString = process.env.CONTRACT_ID;
+export const IDL: string = process.env.CONTRACT_IDL;`
+  },
+  {
+    name: 'main.ts',
+    content: `import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+  app.enableCors({
+    origin: 'http://localhost',
+    methods: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
+    allowedHeaders: 'Content-Type,Authorization',
+    credentials: true
+  });
+  //  app.enableCors({
+  //     origin: 'http://localhost', // Poner la URL de tu WordPress
+  //     methods: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
+  //     allowedHeaders: 'Content-Type,Authorization',
+      
+  // });
+
+  await app.listen(process.env.PORT ?? 3000);
+
+  process.on('SIGINT', async () => {
+    console.log('\nClosing server...');
+    await app.close();
+  });
+}
+bootstrap();`
+  }
+];

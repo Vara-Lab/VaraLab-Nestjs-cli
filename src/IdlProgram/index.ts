@@ -2,16 +2,20 @@ import { SailsIdlParser, Program } from "sails-js-parser"
 import { ISailsService } from 'sails-js-types';
 
 export class IdlProgram {
-    private constructor(private program: Program) {}
+    private constructor(private program: Program, private idlContent: string) {}
 
     static async new(idl: string): Promise<IdlProgram> {
         const parser = await SailsIdlParser.new();
         const parsedIDL = parser.parse(idl);
 
-        return new IdlProgram(parsedIDL)
+        return new IdlProgram(parsedIDL, idl);
     }
 
-    servicesNames(): string[] {
+    get getIdlContent(): string {
+        return this.idlContent;
+    }
+
+    serviceNames(): string[] {
         const names = this.program
             .services
             .map(service => service.name);
@@ -52,5 +56,38 @@ export class IdlProgram {
         }
 
         return method;
+    }
+
+    getServiceCommandsNames(serviceName: string) {
+        const service = this.getService(serviceName);
+
+        const funcs = service.funcs.filter(func => !func.isQuery);
+
+        return funcs.map(func => func.name);
+    }
+
+    getServiceQueriesNames(serviceName: string) {
+        const service = this.getService(serviceName);
+
+        const funcs = service.funcs.filter(func => func.isQuery);
+
+        return funcs.map(func => func.name);
+    }
+
+    getServiceFuncParamNames(serviceName: string, funcName: string) {
+        const service = this.getService(serviceName);
+        const func = this.getServiceMethod(service, funcName);
+
+        const funcParamNames = func.params.map(param => param.name);
+
+        return funcParamNames;
+    }
+
+    serviceFuncContainsParams(serviceName: string, funcName: string) {
+        const service = this.getService(serviceName);
+        const func = this.getServiceMethod(service, funcName);
+
+        return func.params.length > 0;
+
     }
 }

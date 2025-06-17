@@ -1,77 +1,73 @@
-import * as fs from 'fs';
-import path from 'path';
-// import { ParsedIDL } from './parser';
-// import { packageJsonData } from './nestjs_data';
-// import { Program } from 'sails-js-parser';
 import { IdlProgram } from '../IdlProgram';
-import { rootFilesAndContent } from '../nestjs_data';
-import { pathExists } from '../utils';
+import { CONTRACT_CLIENT_OUT_DIR } from '../utils';
+import { GITHUB_BASE_NESTJS } from '../utils';
+import { moduleGenerator } from './module_generator';
+import { createMainModule } from './main_module_generator';
+import { createEnvFile } from './env_file_gnerator';
+import fs from 'fs-extra'
+import path from 'path';
+import degit from 'degit';
 
-
-export async function generateNestProject(idlProgram: IdlProgram, serverName: string, outDir: string) {
-  const nestjsPath = path.join(outDir, serverName);
-  console.log('Path to create nest:');
-  console.log(nestjsPath);
-
-  if (pathExists(nestjsPath)) {
-    throw new Error(`Directory ${serverName} already exists`);
-  }
-
-  fs.mkdirSync(nestjsPath);
-
-  for (const rootFile of rootFilesAndContent) {
-    const filePath = path.join(nestjsPath, rootFile.name);
-    fs.writeFileSync(filePath, rootFile.content);
-  }
+export interface NestJsData {
+  idlProgram: IdlProgram;
+  nestjsPath: string;
+  contractClientPath: string;
+  outPath: string;
+  rpcUrl: string;
+  nodeEnv: string;
+  port: string;
+  contractId: string;
+  contractIdl: string;
 }
 
-// export async function generateNestProject(idlProgram: IdlProgram, outputDir: string) {
-//   fs.mkdirSync(outputDir, { recursive: true });
-//   const servicesDir = path.join(outputDir, 'src/services');
-//   fs.mkdirSync(servicesDir, { recursive: true });
-//   fs.writeFileSync(path.join(outputDir, 'package.json'), JSON.stringify(packageJsonData, null, 2));
+export async function generateNestProject(data: NestJsData) {
+  const {
+    idlProgram,
+    nestjsPath,
+    contractClientPath,
+    outPath,
+    rpcUrl,
+    nodeEnv,
+    port,
+    contractId,
+    contractIdl
+  } = data;
 
-//   parser.services.forEach(service => {
-//     const serviceFile = path.join(servicesDir, `${service.name}.service.ts`);
-// service
-//     const serviceContent = `
-// import { Injectable } from '@nestjs/common';
+  console.log('⚙️ Working in server ...');
 
-// @Injectable()
-// export class ${service.name}Service {
-// ${service.funcs.map(method => `
-//   ${method.name}(${method.params.join(', ')}): string {
-//     return 'Response from ${method.name}';
-//   }
-// `).join('\n')}
-// }
-// `;
-//     fs.writeFileSync(serviceFile, serviceContent);
-//   });
+  // clone the base repository for the nestjs server
+  const nestJsSrcDir = path.join(nestjsPath, 'src');
+  const emitter = degit(GITHUB_BASE_NESTJS, { cache: false, force: true });
+  await emitter.clone(outPath);
 
-//   const mainFile = `
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app.module';
+  fs.moveSync(
+    contractClientPath,
+    path.join(nestJsSrcDir, CONTRACT_CLIENT_OUT_DIR),
+  );
 
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-//   await app.listen(3000);
-// }
-// bootstrap();
-// `;
-//   fs.mkdirSync(path.join(outputDir, 'src'), { recursive: true });
-//   fs.writeFileSync(path.join(outputDir, 'src/main.ts'), mainFile);
+  const servicesNames = idlProgram.serviceNames().filter(serviceName => serviceName != 'KeyringService');
 
-//   const appModuleFile = `
-// import { Module } from '@nestjs/common';
-// ${parser.services.map(service => `import { ${service.name}Service } from './services/${service.name}.service';`).join('\n')}
+  for (const serviceName of servicesNames) {
+    moduleGenerator(
+      serviceName,
+      nestJsSrcDir,
+      idlProgram
+    )
+  }
+  console.log('Nestjs Modules created ✅');
+  
+  createMainModule(nestJsSrcDir, servicesNames);
 
-// @Module({
-//   providers: [
-//     ${parser.services.map(service => `${service.name}Service`).join(',\n')}
-//   ],
-// })
-// export class AppModule {}
-// `;
-//   fs.writeFileSync(path.join(outputDir, 'src/app.module.ts'), appModuleFile);
-// }
+  console.log('NestJs Main module created ✅');
+
+  createEnvFile({
+    nestJsPath: nestjsPath,
+    rpcUrl,
+    nodeEnv,
+    port,
+    contractId,
+    contractIdl
+  });
+
+  console.log('Env file created ✅');
+}

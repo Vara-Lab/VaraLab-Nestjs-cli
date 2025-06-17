@@ -17,10 +17,17 @@
   "dependencies": {
     "@types/jest": "^29.5.14",
     "commander": "^11.0.0",
+    "degit": "^2.8.4",
+    "fs-extra": "^11.3.0",
+    "inquirer": "^12.6.3",
+    "mustache": "^4.2.0",
     "sails-js-parser": "^0.4.2",
     "ts-morph": "^26.0.0"
   },
   "devDependencies": {
+    "@types/degit": "^2.8.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^24.0.1",
     "jest": "^29.6.0",
     "sails-js-types": "^0.4.2",

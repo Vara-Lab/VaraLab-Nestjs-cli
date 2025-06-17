@@ -1,8 +1,31 @@
+import { IdlProgram } from './IdlProgram';
 import path from "path";
-import * as fs from 'fs'; 
+import fs from 'fs-extra';
 
-export const CLIENT_ROOT = 'contract_client';
+export const CONTRACT_CLIENT_OUT_DIR = 'contract_client';
 export const CURRENT_DIR = process.cwd();
+export const GITHUB_BASE_NESTJS = 'https://github.com/David-HernandezM/nestjs-server-testing.git';
+
+export async function checkAndGetIdlProgram(idlPath: string): Promise<IdlProgram> {
+  const idlContent = fs.readFileSync(idlPath, 'utf8');
+  const idlProgram = await IdlProgram.new(idlContent);
+
+  const service = idlProgram.getService('KeyringService');
+
+  if (!service) {
+    throw new Error('KeyringService not found');
+  }
+
+  const keyringMethods = idlProgram.serviceFuncNames('KeyringService');
+
+  for (const func of keyringMethods) {
+    const funcExists = keyringMethods.find(funcName => funcName == func);
+
+    if (!funcExists) throw new Error(`Function ${func} not found`);
+  }
+
+  return idlProgram;
+}
 
 export function pathExists(sourcePath: string) {
   return fs.existsSync(sourcePath);
@@ -21,6 +44,11 @@ export function deleteFile(filePath: string, absolutePath = false) {
   } else {
     fs.rmSync(filePath);
   }
+}
+
+export function createFile(filePath: string, content: string) {
+  fs.createFileSync(filePath);
+  fs.writeFileSync(filePath, content);
 }
 
 export function deleteDir(dirPath: string, recursive = false) {

@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-// import { generateNestProject } from './generator';
-import { execSync } from 'child_process';
 import { 
   deleteDir,
-  pathExists,
-  CLIENT_ROOT, 
-  CURRENT_DIR
+  checkAndGetIdlProgram,
+  CURRENT_DIR,
+  CONTRACT_CLIENT_OUT_DIR
 } from './utils'; 
 import { createClient } from './client_generator';
-import { IdlProgram } from './IdlProgram';
 import { generateNestProject } from './nestjs_generator';
-import * as fs from 'fs';
+import fs from 'fs-extra';
+import path from 'path';
+import inquirer from 'inquirer';
 
 const program = new Command();
+
+interface UserInputData {
+  [key: string]: string
+}
 
 program
   .name('idl-to-nestjs')
@@ -23,31 +26,57 @@ program
 
 program
   .argument('<idl-file>', 'Path to the .idl file')
+  // .argument('<template>', 'Repositorio de GitHub o ruta local (formato user/repo o ./ruta)')
   .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
   .action(async (idlFile, options) => {
-    console.log('Path: ', CURRENT_DIR);
+    const {output}: { output: string } = options;
 
     try {
-      console.log('⚙️ Generating types ...')
-      // createClient(idlFile);
+      // Check if output dir exists
+      if (fs.existsSync(output)) {
+        throw new Error(`Directory '${output}' already exists`);
+      }
 
-      const idlContent = fs.readFileSync(idlFile, 'utf8');
-      const idlProgram = await IdlProgram.new(idlContent);
+      // create the idl program
+      const idlProgram = await checkAndGetIdlProgram(idlFile);
+      const nestJsDir = path.join(CURRENT_DIR, output);
+      const contractClientPath = path.join(CURRENT_DIR, CONTRACT_CLIENT_OUT_DIR);
 
-      await generateNestProject(idlProgram, options.output, CURRENT_DIR);
+      const answers: UserInputData = await inquirer.prompt([
+        { type: 'input', name: 'rpcUrl', message: 'RPC Url: ', default: 'wss://testnet.vara.network' },
+        { type: 'input', name: 'portNumber', message: 'Port Number: ', default: '8000' },
+        { type: 'list', name: 'nodeEnv', message: 'Nest env: ', choices: ['development', 'production'] },
+        { type: 'input', name: 'contractId', message: 'Contract address: ', default: '0x' },
+      ]);
 
-      // await generateNestProject(
-      //   idlProgram,
-      //   ''
-      // );
-      // await generateNestProject(parsedIDL, options.output);
+      // create the output dir
+      fs.mkdirSync(output);
+      
+      // Create idl types and client for program
+      createClient(idlFile);
+      console.log('✅ IDL types and program created');
 
-      console.log(`✅ Servidor NestJS generado en: ${options.output}`);
+      const nestJsData = {
+        idlProgram,
+        nestjsPath: nestJsDir,
+        contractClientPath,
+        outPath: output,
+        rpcUrl: answers.rpcUrl,
+        nodeEnv: answers.nodeEnv,
+        port: answers.portNumber,
+        contractId: answers.contractId,
+        contractIdl: idlProgram.getIdlContent
+      };
+      
+      // Create all the nestjs server
+      await generateNestProject(nestJsData);
+      
+      console.log(`🎉 NestJS server created in: ${output}`);
     } catch (e) {
       const err = e as Error;
 
-      if (fs.existsSync(CLIENT_ROOT)) {
-        deleteDir(CLIENT_ROOT);
+      if (fs.existsSync(CONTRACT_CLIENT_OUT_DIR)) {
+        deleteDir(CONTRACT_CLIENT_OUT_DIR);
       }
 
       console.error(`❌ Error: ${err.message}`);
@@ -55,146 +84,3 @@ program
   });
 
 program.parse(process.argv);  
-
-
-
-
-/*
-{
-  "name": "SailsProgram",
-  "type": "module",
-  "dependencies": {
-    "@gear-js/api": "^0.42.0",
-    "@polkadot/api": "^15.9.1",
-    "sails-js": "0.4.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.3"
-  },
-  "scripts": {
-    "build": "tsc"
-  }
-}
-
-
-
-
-
-{
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "strict": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "outDir": "lib"
-  },
-  "include": [
-    "src"
-  ]
-}
-*/
-
-
-
-
-
-
-
-// import { SailsIdlParser, TypeDef } from "sails-js-parser";
-// import { EnumDef } from "sails-js-parser";
-// import { execSync } from "child_process";
-// import * as fs from 'fs';
-
-// interface IService {
-//   name: string;
-//   functions: number
-// }
-
-// interface IServiceFunction {
-//   name: string;
-// }
-
-// console.log('\n\n\nProgram execution: \n\n\n');
-
-
-// const main = async () => {
-
-// }
-
-// // const main = async () => {
-// //   const parser = await SailsIdlParser.new()
-// //   let idlContent = '';
-
-// //   try {
-// //       idlContent = fs.readFileSync('./contract.idl', 'utf8');
-// //       // console.log('Contract idl:');
-// //       // console.log(idlContent);
-// //   } catch (e) {
-// //       console.log('ERROOOOOOR');
-// //       console.log(e);
-// //   }
-
-// //   const x = parser.parse(idlContent);
-
-// //   console.log('Program from idl:');
-// //   // console.log(x);
-
-// //   const servicesNames = x.services.map(service => {
-// //       // console.log(service);
-// //       // console.log(func);
-// //       console.log('\nService name: ', service.name);
-// //       service.funcs.forEach(serv => {
-// //         console.log('Func name:', serv.name, ', is query: ', serv.isQuery ? 'YES':'NO');
-        
-// //         serv.params.forEach(param =>{
-// //           console.log('Param name: ', param.name, ' ----------------');
-// //           console.log('Param definition: ', param.def);
-// //           console.log(param.def);
-// //         });
-
-// //         console.log('\n');
-// //       })
-
-// //       return service.name;
-// //   });
-
-// //   console.log('\n\nTypes:');
-
-// //   x.types.forEach(idlType => {
-// //     console.log('------- name: ', idlType.name);
-// //     console.log('User defined: ', idlType.def.isUserDefined ? 'YES':'NO');
-// //     if (idlType.def.isEnum) {
-// //       console.log('Is enum, nesting: ', idlType.def.asEnum.isNesting?'YES':'NO');
-// //       idlType.def.asEnum.variants.forEach(variant => {
-// //         console.log('variant name: ', variant.name, ' -------');
-// //         console.log(variant.def);
-// //       });
-// //     }
-// //   });
-// // }
-
-// main();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

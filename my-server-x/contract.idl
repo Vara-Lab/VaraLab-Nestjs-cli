@@ -4,11 +4,6 @@ type ContractResponse = enum {
   RedReceived,
 };
 
-type StructTest = struct {
-  name: str,
-  age: u128,
-};
-
 type IoContractState = struct {
   owner: actor_id,
   current_light: Light,
@@ -52,11 +47,9 @@ constructor {
 
 service TrafficLight {
   Green : () -> ContractResponse;
-  RandomFuncCommand : (user_address: actor_id, string_t: str, number: u32, data: StructTest, strings_vec: vec str) -> struct { actor_id, str, u32, StructTest, vec str };
   Red : () -> ContractResponse;
   Yellow : () -> ContractResponse;
   query ContractOwner : () -> actor_id;
-  query RandomFuncQuery : (string_t: str, number: u32, data: StructTest, strings_vec: vec str) -> struct { str, u32, StructTest, vec str };
   query TrafficLight : () -> IoContractState;
 };
 
