@@ -75,12 +75,30 @@ export async function generateNestProject(data: NestJsData) {
         isQuery
       } = url;
 
-      const functionType = url.isQuery ? 'command' : 'query';
+      const functionType = !url.isQuery ? 'command' : 'query';
       lines.push(`- Url for ${funcName} ${functionType} in service ${serviceName}: *${urlStr}*`);
-
     });
   }
 
+  lines.push('### Signless calls:');
+  lines.push('1. User register: http://localhost:8000/auth/register');
+  lines.push('\n    You need to send the next json data to the server with the user info:');
+  lines.push('  \`\`\`javascript');
+  lines.push('  {');
+  lines.push('    "username": "username",');
+  lines.push('    "password": "user_password"');
+  lines.push('  {');
+  lines.push('  \`\`\`');
+  lines.push('2. User login: http://localhost:8000/auth/login');
+  lines.push('\n    You need to send the next json data to the server with the user info, in this call the server will set cookies with the user account:');
+  lines.push('  \`\`\`javascript');
+  lines.push('  {');
+  lines.push('    "username": "username",');
+  lines.push('    "password": "user_password"');
+  lines.push('  {');
+  lines.push('  \`\`\`');
+  lines.push('3. User session refresh: http://localhost:8000/auth/refresh');
+  lines.push('\n    This call will refresh the user JWT tokens to still send messages.');
   lines.push('');
   lines.push(`<p align="center">`);
   lines.push(`    <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />`);

@@ -1,0 +1,70 @@
+type ContractResponse = enum {
+  GreenReceived,
+  YellowReceived,
+  RedReceived,
+};
+
+type StructTest = struct {
+  name: str,
+  age: u128,
+};
+
+type IoContractState = struct {
+  owner: actor_id,
+  current_light: Light,
+  callers: vec struct { actor_id, Light },
+};
+
+type Light = enum {
+  Green,
+  Red,
+  Yellow,
+};
+
+type KeyringData = struct {
+  address: str,
+  encoded: str,
+};
+
+type KeyringEvent = enum {
+  KeyringAccountSet,
+  Error: KeyringError,
+};
+
+type KeyringError = enum {
+  KeyringAddressAlreadyEsists,
+  UserAddressAlreadyExists,
+  UserCodedNameAlreadyExists,
+  UserDoesNotHasKeyringAccount,
+  KeyringAccountAlreadyExists,
+  SessionHasInvalidCredentials,
+  UserAndKeyringAddressAreTheSame,
+};
+
+type KeyringQueryEvent = enum {
+  KeyringAccountAddress: opt actor_id,
+  KeyringAccountData: opt KeyringData,
+};
+
+constructor {
+  New : ();
+};
+
+service TrafficLight {
+  Green : () -> ContractResponse;
+  RandomFuncCommand : (user_address: actor_id, string_t: str, number: u32, data: StructTest, strings_vec: vec str) -> struct { actor_id, str, u32, StructTest, vec str };
+  Red : () -> ContractResponse;
+  Yellow : () -> ContractResponse;
+  query ContractOwner : () -> actor_id;
+  query RandomFuncQuery : (string_t: str, number: u32, data: StructTest, strings_vec: vec str) -> struct { str, u32, StructTest, vec str };
+  query TrafficLight : () -> IoContractState;
+};
+
+service KeyringService {
+  BindKeyringDataToUserAddress : (user_address: actor_id, keyring_data: KeyringData) -> KeyringEvent;
+  BindKeyringDataToUserCodedName : (user_coded_name: str, keyring_data: KeyringData) -> KeyringEvent;
+  query KeyringAccountData : (keyring_address: actor_id) -> KeyringQueryEvent;
+  query KeyringAddressFromUserAddress : (user_address: actor_id) -> KeyringQueryEvent;
+  query KeyringAddressFromUserCodedName : (user_coded_name: str) -> KeyringQueryEvent;
+};
+

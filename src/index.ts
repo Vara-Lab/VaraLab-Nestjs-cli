@@ -25,7 +25,6 @@ program
 
 program
   .argument('<idl-file>', 'Path to the .idl file')
-  // .argument('<template>', 'Repositorio de GitHub o ruta local (formato user/repo o ./ruta)')
   .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
   .action(async (idlFile, options) => {
     const {output}: { output: string } = options;
