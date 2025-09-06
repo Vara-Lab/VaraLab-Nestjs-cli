@@ -15,7 +15,7 @@ interface ControllerData {
     urls: FunctionUrl[]
 }
 
-export function moduleGenerator(serviceName: string, nestjsSrcPath: string, idlProgram: IdlProgram, port: string): FunctionUrl[] {
+export function moduleGenerator(serviceName: string, nestjsSrcPath: string, idlProgram: IdlProgram, port: number): FunctionUrl[] {
     const serviceNameLowerCase = serviceName.toLocaleLowerCase();
     const modulePath = path.join(nestjsSrcPath, serviceNameLowerCase);
     const moduleFilePath = path.join(modulePath, `${serviceNameLowerCase}.module.ts`);
@@ -58,17 +58,25 @@ function baseModuleCode(serviceName: string) {
     return `import { Module } from '@nestjs/common';
 import { ${serviceName}Controller } from './${serviceName.toLowerCase()}.controller';
 import { ${serviceName}Service } from './${serviceName.toLowerCase()}.service';
-import { SailscallsService } from 'src/sailscallsClientService/sailscallsClient.service';
+import { SailscallsService } from '../SailscallsService/sailscallsClient.service';
+import { VouchersWorkerService } from '../VouchersWorkerService/vouchers_worker.service';
+import { VoucherService } from '../Voucher/voucher.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [${serviceName}Controller],
-  providers: [${serviceName}Service, SailscallsService, JwtService]
+  providers: [
+    ${serviceName}Service, 
+    SailscallsService, 
+    JwtService, 
+    VouchersWorkerService,
+    VoucherService
+  ]
 })
 export class ${serviceName}Module {}`;
 }
 
-function createController(idlProgram: IdlProgram, serviceName: string, commandNames: string[], queryNames: string[], port: string): ControllerData {
+function createController(idlProgram: IdlProgram, serviceName: string, commandNames: string[], queryNames: string[], port: number): ControllerData {
     const lines: string[] = [];
     const functionsUrl: FunctionUrl[] = [];
     const serviceNameLower = serviceName.toLowerCase();
@@ -138,12 +146,16 @@ function createServiceCode(idlProgram: IdlProgram, serviceName: string, commandN
     const nestJsServiceName = `${serviceName}Service`;
 
     lines.push(`import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';`);
-    lines.push(`import { SailscallsService } from 'src/sailscallsClientService/sailscallsClient.service';`);
+    lines.push(`import { SailscallsService } from '../SailscallsService/sailscallsClient.service';`);
     lines.push(`import { KeyringData } from 'src/keyring/dto/keyring.dto';`);
-    lines.push(`import type { KeyringPair } from '@polkadot/keyring/types'`);
+    lines.push(`import { VoucherService } from '../Voucher/voucher.service';`);
+    lines.push(`import type { KeyringPair } from '@polkadot/keyring/types';`);
     lines.push(`@Injectable()`);
     lines.push(`export class ${nestJsServiceName} {`);
-    lines.push(`    constructor(private sailsCallsService: SailscallsService) {}`);
+    lines.push(`    constructor(`);
+    lines.push(`        private sailsCallsService: SailscallsService,`);
+    lines.push(`        private voucherService: VoucherService`);
+    lines.push(`    ) {}`);
 
     commandNames.forEach(commandName => {
         createServiceCommandFunc(idlProgram, lines, serviceName, commandName);
@@ -167,12 +179,12 @@ function createServiceCommandFunc(idlProgram: IdlProgram, lines: string[], servi
         lines.push(`    async ${commandNameLower}Call(signerData: KeyringData) {`);
     }
     
-    lines.push(`        const sailscallsInstance = this.sailsCallsService.sailsInstance();`);
+    lines.push(`        const sailscallsInstance = this.sailsCallsService.sailsInstance;`);
     lines.push(`        try {`);
-    lines.push(`            await this.sailsCallsService.checkVoucher(`);
-    lines.push(`                signerData.keyringAddress,`);
-    lines.push(`                signerData.keyringVoucherId`);
-    lines.push(`            );`);
+    lines.push(`            await this.voucherService.updateVoucher({`);
+    lines.push(`                userAddress: signerData.keyringAddress,`);
+    lines.push(`                voucherId: signerData.keyringVoucherId`);
+    lines.push(`            });`);
     lines.push(`        } catch (e) {`);
     lines.push(`            throw new UnauthorizedException('Voucher is not set for user: ', JSON.stringify(e));`);
     lines.push(`        }`);
@@ -192,7 +204,7 @@ function createServiceCommandFunc(idlProgram: IdlProgram, lines: string[], servi
     lines.push(`                signerData: signer,`);
     lines.push(`                voucherId: signerData.keyringVoucherId,`);
     lines.push(`                callArguments: [`);
-    lines.push(`                    signerData.keyringAddress,`);
+    // lines.push(`                    signerData.keyringAddress,`);
 
     if (idlProgram.serviceFuncContainsParams(serviceName, commandName)) {
        lines.push(`                    ...funcArguments`);

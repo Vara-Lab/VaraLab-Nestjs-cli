@@ -158,8 +158,8 @@ export default tseslint.config(
         name: 'module.d.ts',
         content: `declare namespace NodeJS {
   export interface ProcessEnv {
-    jwtSecretKey: string;
-    jwtRefreshTokenKey: string;
+    JWT_SECRET_KEY: string;
+    JWT_REFRESH_TOKEN_KEY: string;
     RPC_URL: string;
     NODE_ENV: string;
     PORT: string;

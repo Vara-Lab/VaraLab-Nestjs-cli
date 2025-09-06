@@ -15,9 +15,17 @@ export interface NestJsData {
   outPath: string;
   rpcUrl: string;
   nodeEnv: string;
-  port: string;
+  port: number;
+  sponsorName: string;
+  sponsorMnemonic: string;
   contractId: string;
   contractIdl: string;
+  workerWaitingTime: string;
+  initialTokensForVoucher: number;
+  initialVoucherExpiration: number;
+  minTokensForVoucher: number;
+  tokensToAddToVOucher: number;
+  newVoucherExpiration: number;
 }
 
 export async function generateNestProject(data: NestJsData) {
@@ -29,8 +37,16 @@ export async function generateNestProject(data: NestJsData) {
     rpcUrl,
     nodeEnv,
     port,
+    sponsorName,
+    sponsorMnemonic,
     contractId,
-    contractIdl
+    contractIdl,
+    workerWaitingTime,
+    initialTokensForVoucher,
+    initialVoucherExpiration,
+    minTokensForVoucher,
+    tokensToAddToVOucher,
+    newVoucherExpiration
   } = data;
 
   console.log('⚙️ Working in server ...');
@@ -40,10 +56,11 @@ export async function generateNestProject(data: NestJsData) {
   const emitter = degit(GITHUB_BASE_NESTJS, { cache: false, force: true });
   await emitter.clone(outPath);
 
-  fs.moveSync(
-    contractClientPath,
-    path.join(nestJsSrcDir, CONTRACT_CLIENT_OUT_DIR),
-  );
+  // [TODO]: remove when sails-cli fix typescript bug
+  // fs.moveSync(
+  //   contractClientPath,
+  //   path.join(nestJsSrcDir, CONTRACT_CLIENT_OUT_DIR),
+  // );
 
   const servicesNames = idlProgram.serviceNames().filter(serviceName => serviceName != 'KeyringService');
 
@@ -117,8 +134,16 @@ export async function generateNestProject(data: NestJsData) {
     rpcUrl,
     nodeEnv,
     port,
+    sponsorName,
+    sponsorMnemonic,
     contractId,
-    contractIdl
+    contractIdl,
+    workerWaitingTime,
+    initialTokensForVoucher,
+    initialVoucherExpiration,
+    minTokensForVoucher,
+    tokensToAddToVOucher,
+    newVoucherExpiration
   });
 
   fs.writeFileSync(readmePath, readmeCode);

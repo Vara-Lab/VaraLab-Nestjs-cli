@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateNestProject = generateNestProject;
 const utils_1 = require("../utils");
-const utils_2 = require("../utils");
 const module_generator_1 = require("./module_generator");
 const main_module_generator_1 = require("./main_module_generator");
 const env_file_gnerator_1 = require("./env_file_gnerator");
@@ -13,13 +12,17 @@ const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
 const degit_1 = __importDefault(require("degit"));
 async function generateNestProject(data) {
-    const { idlProgram, nestjsPath, contractClientPath, outPath, rpcUrl, nodeEnv, port, contractId, contractIdl } = data;
+    const { idlProgram, nestjsPath, contractClientPath, outPath, rpcUrl, nodeEnv, port, sponsorName, sponsorMnemonic, contractId, contractIdl, workerWaitingTime, initialTokensForVoucher, initialVoucherExpiration, minTokensForVoucher, tokensToAddToVOucher, newVoucherExpiration } = data;
     console.log('⚙️ Working in server ...');
     // clone the base repository for the nestjs server
     const nestJsSrcDir = path_1.default.join(nestjsPath, 'src');
-    const emitter = (0, degit_1.default)(utils_2.GITHUB_BASE_NESTJS, { cache: false, force: true });
+    const emitter = (0, degit_1.default)(utils_1.GITHUB_BASE_NESTJS, { cache: false, force: true });
     await emitter.clone(outPath);
-    fs_extra_1.default.moveSync(contractClientPath, path_1.default.join(nestJsSrcDir, utils_1.CONTRACT_CLIENT_OUT_DIR));
+    // [TODO]: remove when sails-cli fix typescript bug
+    // fs.moveSync(
+    //   contractClientPath,
+    //   path.join(nestJsSrcDir, CONTRACT_CLIENT_OUT_DIR),
+    // );
     const servicesNames = idlProgram.serviceNames().filter(serviceName => serviceName != 'KeyringService');
     const readmePath = path_1.default.join(nestjsPath, 'README.md');
     const readmeContent = fs_extra_1.default.readFileSync(readmePath, 'utf8');
@@ -70,8 +73,16 @@ async function generateNestProject(data) {
         rpcUrl,
         nodeEnv,
         port,
+        sponsorName,
+        sponsorMnemonic,
         contractId,
-        contractIdl
+        contractIdl,
+        workerWaitingTime,
+        initialTokensForVoucher,
+        initialVoucherExpiration,
+        minTokensForVoucher,
+        tokensToAddToVOucher,
+        newVoucherExpiration
     });
     fs_extra_1.default.writeFileSync(readmePath, readmeCode);
     console.log('Env file created ✅');

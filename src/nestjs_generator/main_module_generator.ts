@@ -7,10 +7,12 @@ export function createMainModule(nestjsSrcPath: string, serviceNames: string[]) 
 
     lines.push(`import { Module } from '@nestjs/common';`);
     lines.push(`import { AppController } from './app.controller';`);
+    lines.push(`import { ConfigModule } from '@nestjs/config';`);
     lines.push(`import { AuthModule } from './auth/auth.module';`);
     lines.push(`import { KeyringModule } from './keyring/keyring.module';`);
-    lines.push(`import { ConfigModule } from '@nestjs/config';`);
-    lines.push(`import { SailscallsService } from './sailscallsClientService/sailscallsClient.service';`)
+    lines.push(`import { VoucherModule } from './Voucher/voucher.module';`);
+    lines.push(`import { SailscallsService } from './SailscallsService/sailscallsClient.service';`);
+    lines.push(`import { VouchersWorkerService } from './VouchersWorkerService/vouchers_worker.service';`);
 
     serviceNames.forEach(moduleName => {
         const serviceLowerName = moduleName.toLowerCase();
@@ -24,6 +26,7 @@ export function createMainModule(nestjsSrcPath: string, serviceNames: string[]) 
     lines.push(`        }),`);
     lines.push(`        AuthModule,`);
     lines.push(`        KeyringModule,`);
+    lines.push(`        VoucherModule,`);
 
     serviceNames.forEach(moduleName => {
         lines.push(`        ${moduleName}Module,`);
@@ -31,7 +34,7 @@ export function createMainModule(nestjsSrcPath: string, serviceNames: string[]) 
 
     lines.push(`    ],`);
     lines.push(`    controllers: [AppController],`);
-    lines.push(`    providers: [SailscallsService],`);
+    lines.push(`    providers: [SailscallsService, VouchersWorkerService],`);
     lines.push(`})`);
     lines.push(`export class AppModule {}`);
 

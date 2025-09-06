@@ -1,0 +1,52 @@
+type KeyringData = struct {
+  address: str,
+  encoded: str,
+};
+
+type KeyringEvent = enum {
+  KeyringAccountSet,
+  Error: KeyringError,
+};
+
+type KeyringError = enum {
+  KeyringAddressAlreadyEsists,
+  UserAddressAlreadyExists,
+  UserCodedNameAlreadyExists,
+  UserDoesNotHasKeyringAccount,
+  KeyringAccountAlreadyExists,
+  SessionHasInvalidCredentials,
+  UserAndKeyringAddressAreTheSame,
+};
+
+type KeyringQueryEvent = enum {
+  KeyringAccountAddress: opt actor_id,
+  KeyringAccountData: opt KeyringData,
+};
+
+constructor {
+  New : ();
+};
+
+service ContractService {
+  Decrement : () -> u64;
+  GetValue : (to_return: u128) -> str;
+  Hello : () -> str;
+  Increment : () -> u64;
+  SendValue : () -> str;
+
+  events {
+    Hello: actor_id;
+    ValueReceived: u128;
+    ValueSent: u128;
+    Incremented;
+    Decremented;
+  }
+};
+
+service KeyringService {
+  BindKeyringDataToUserAddress : (user_address: actor_id, keyring_data: KeyringData) -> KeyringEvent;
+  BindKeyringDataToUserCodedName : (user_coded_name: str, keyring_data: KeyringData) -> KeyringEvent;
+  query KeyringAccountData : (keyring_address: actor_id) -> KeyringQueryEvent;
+  query KeyringAddressFromUserAddress : (user_address: actor_id) -> KeyringQueryEvent;
+  query KeyringAddressFromUserCodedName : (user_coded_name: str) -> KeyringQueryEvent;
+};
