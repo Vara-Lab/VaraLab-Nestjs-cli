@@ -101,8 +101,8 @@ exports.packageJsonData = {
 exports.rootFilesAndContent = [
     {
         name: '.env',
-        content: `jwtSecretKey=
-jwtRefreshTokenKey=
+        content: `JWT_SECRET_KEY=
+JWT_REFRESH_TOKEN_KEY=
 RPC_URL=
 NODE_ENV=development
 PORT=
