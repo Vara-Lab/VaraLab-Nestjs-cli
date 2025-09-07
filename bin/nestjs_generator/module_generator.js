@@ -74,7 +74,7 @@ function createController(idlProgram, serviceName, commandNames, queryNames, por
         functionsUrl.push({
             serviceName,
             funcName: commandName,
-            url: `https://localhost:${port}/${serviceNameLower}/command/${commandNameLower}`,
+            url: `http://localhost:${port}/${serviceNameLower}/command/${commandNameLower}`,
             isQuery: false
         });
     });
@@ -93,7 +93,7 @@ function createController(idlProgram, serviceName, commandNames, queryNames, por
         functionsUrl.push({
             serviceName,
             funcName: queryName,
-            url: `https://localhost:${port}/${serviceNameLower}/query/${queryNameLower}`,
+            url: `http://localhost:${port}/${serviceNameLower}/query/${queryNameLower}`,
             isQuery: true
         });
     });

@@ -1,6 +1,8 @@
 # CLI IDL to NestJS
 
-CLI that create a nestjs server from a `.idl`.
+CLI that create a nestjs server from a given `.idl` file to interact with [Vara Network](https://vara.network/).
+
+> Note: Your contract needs the `Keyring service` from [Vara Lab](https://github.com/Vara-Lab/Contracts-Services/tree/main/keyring-service) to build your nestjs server. 
 
 ## How to use
 
@@ -21,10 +23,10 @@ npx varalab-nestjs ./example.idl --output my-server
 npx varalab-nestjs ./example.idl -o my-server
 ```
 
-## Tests
+### Instalation
+
+You can install it to run locally the cli with the next command:
 
 ```bash
-pnpm i
-pnpm run test
+npm i -g varalab-nestjs
 ```
-

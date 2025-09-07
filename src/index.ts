@@ -23,7 +23,7 @@ interface UserInputData {
 program
   .name('idl-to-nestjs')
   .description('CLI to generate a NestJS server from an IDL file')
-  .version('0.1.0');
+  .version('1.1.5');
 
 program
   .argument('<idl-file>', 'Path to the .idl file')
@@ -44,12 +44,12 @@ program
 
       const answers: UserInputData = await inquirer.prompt([
         { type: 'list', name: 'rpcUrl', message: 'RPC Url: ', choices: ['wss://testnet.vara.network', 'wss://rpc.vara.network', 'ws://localhost:9944'] },
-        { type: 'list',  name: 'nodeEnv', message: 'Nest env: ', choices: ['development', 'production'] },
-        { type: 'input', name: 'portNumber', message: 'Port Number: ', default: '8000' },
         { type: 'input', name: 'contractId', message: 'Contract address: ', default: '0x' },
-        { type: 'input', name: 'workerWaitingTime', message: 'Worker waiting time (miliseconds): ', default: '7000' },
         { type: 'input', name: 'sponsorName', message: 'Sponsor name: ', default: '' },
         { type: 'input', name: 'sponsorMnemonic', message: 'Sponsor mnemonic: ', default: ''},
+        { type: 'list',  name: 'nodeEnv', message: 'Nest env: ', choices: ['development', 'production'] },
+        { type: 'input', name: 'portNumber', message: 'Port Number: ', default: '8000' },
+        { type: 'input', name: 'workerWaitingTime', message: 'Worker waiting time (miliseconds): ', default: '7000' },
         { type: 'input', name: 'initialTokensForVoucher', message: 'Initial tokens for voucher: ', default: '4' },
         { type: 'input', name: 'initialVoucherExpiration', message: 'Initial voucher expiration (in blocks): ', default: '1200' },
         { type: 'input', name: 'minTokensForVoucher', message: 'Min tokens in voucher: ', default: '3' },
@@ -108,6 +108,7 @@ program
       await generateNestProject(result.data);
       
       console.log(`\n🎉 NestJS server created in: ${output}`);
+      console.log(`❗ Dont forget to set your JWT tokens to .env!`)
 
       process.exit();
     } catch (e) {

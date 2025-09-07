@@ -15,7 +15,7 @@ const program = new commander_1.Command();
 program
     .name('idl-to-nestjs')
     .description('CLI to generate a NestJS server from an IDL file')
-    .version('0.1.0');
+    .version('1.1.5');
 program
     .argument('<idl-file>', 'Path to the .idl file')
     .option('-o, --output <dir>', 'Directorio de salida', 'generated-server')
@@ -32,12 +32,12 @@ program
         const contractClientPath = path_1.default.join(utils_1.CURRENT_DIR, utils_1.CONTRACT_CLIENT_OUT_DIR);
         const answers = await inquirer_1.default.prompt([
             { type: 'list', name: 'rpcUrl', message: 'RPC Url: ', choices: ['wss://testnet.vara.network', 'wss://rpc.vara.network', 'ws://localhost:9944'] },
-            { type: 'list', name: 'nodeEnv', message: 'Nest env: ', choices: ['development', 'production'] },
-            { type: 'input', name: 'portNumber', message: 'Port Number: ', default: '8000' },
             { type: 'input', name: 'contractId', message: 'Contract address: ', default: '0x' },
-            { type: 'input', name: 'workerWaitingTime', message: 'Worker waiting time (miliseconds): ', default: '7000' },
             { type: 'input', name: 'sponsorName', message: 'Sponsor name: ', default: '' },
             { type: 'input', name: 'sponsorMnemonic', message: 'Sponsor mnemonic: ', default: '' },
+            { type: 'list', name: 'nodeEnv', message: 'Nest env: ', choices: ['development', 'production'] },
+            { type: 'input', name: 'portNumber', message: 'Port Number: ', default: '8000' },
+            { type: 'input', name: 'workerWaitingTime', message: 'Worker waiting time (miliseconds): ', default: '7000' },
             { type: 'input', name: 'initialTokensForVoucher', message: 'Initial tokens for voucher: ', default: '4' },
             { type: 'input', name: 'initialVoucherExpiration', message: 'Initial voucher expiration (in blocks): ', default: '1200' },
             { type: 'input', name: 'minTokensForVoucher', message: 'Min tokens in voucher: ', default: '3' },
@@ -87,6 +87,7 @@ program
         // Create all the nestjs server
         await (0, nestjs_generator_1.generateNestProject)(result.data);
         console.log(`\n🎉 NestJS server created in: ${output}`);
+        console.log(`❗ Dont forget to set your JWT tokens to .env!`);
         process.exit();
     }
     catch (e) {
