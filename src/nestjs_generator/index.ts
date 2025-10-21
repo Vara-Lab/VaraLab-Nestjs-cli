@@ -49,7 +49,7 @@ export async function generateNestProject(data: NestJsData) {
     newVoucherExpiration
   } = data;
 
-  console.log('⚙️ Working in server ...');
+  console.log('⚙️  Working in server ...');
 
   // clone the base repository for the nestjs server
   const nestJsSrcDir = path.join(nestjsPath, 'src');
@@ -66,15 +66,30 @@ export async function generateNestProject(data: NestJsData) {
 
   const readmePath = path.join(nestjsPath, 'README.md');
   const readmeContent = fs.readFileSync(readmePath, 'utf8');
-  const temp = readmeContent.indexOf('<p align="center">');
-  let readmeFileContent = readmeContent.substring(0, temp);
+
+  const nextjsImageIndex = readmeContent.indexOf('<p align="center">');
+  let readmeFileContent = readmeContent.substring(0, nextjsImageIndex);
+  
+  const modulesSubtitleIndex = readmeFileContent.indexOf('### Modules:');
+  let readmeFirstPart = readmeFileContent.substring(0, modulesSubtitleIndex-1);
+  let readmeSecondPart = readmeFileContent.substring(modulesSubtitleIndex+14);
+
+  let modulesNames: string[] = [];
+
+  for (const serviceName of servicesNames) {
+    modulesNames.push(`- ${serviceName}: **Your module description.**`);
+  }
 
   const lines: string[] = [
-    readmeFileContent,
+    readmeFirstPart,
+    "### Modules:",
+    "",
+    ...modulesNames,
+    readmeSecondPart
   ];
 
   lines.push('### Nestjs url');
-  lines.push('Following are the available url for nestjs server based on the provided idl:');
+  lines.push('Following are the available url for nestjs server based on the provided idl:\n');
 
   for (const serviceName of servicesNames) {
     const moduleUrls = moduleGenerator(
@@ -93,11 +108,13 @@ export async function generateNestProject(data: NestJsData) {
       } = url;
 
       const functionType = !url.isQuery ? 'command' : 'query';
-      lines.push(`- Url for ${funcName} ${functionType} in service ${serviceName}: *${urlStr}*`);
+      lines.push(`- Url for \`${funcName}\` ${functionType} in service \`${serviceName}\`: *${urlStr}*`);
     });
+
+    lines.push("");
   }
 
-  lines.push('### Signless calls:');
+  lines.push('\n### Signless calls:');
   lines.push(`1. User register: http://localhost:${port}/auth/register`);
   lines.push('\n    You need to send the next json data to the server with the user info:');
   lines.push('  \`\`\`javascript');

@@ -13,7 +13,7 @@ const path_1 = __importDefault(require("path"));
 const degit_1 = __importDefault(require("degit"));
 async function generateNestProject(data) {
     const { idlProgram, nestjsPath, contractClientPath, outPath, rpcUrl, nodeEnv, port, sponsorName, sponsorMnemonic, contractId, contractIdl, workerWaitingTime, initialTokensForVoucher, initialVoucherExpiration, minTokensForVoucher, tokensToAddToVOucher, newVoucherExpiration } = data;
-    console.log('⚙️ Working in server ...');
+    console.log('⚙️  Working in server ...');
     // clone the base repository for the nestjs server
     const nestJsSrcDir = path_1.default.join(nestjsPath, 'src');
     const emitter = (0, degit_1.default)(utils_1.GITHUB_BASE_NESTJS, { cache: false, force: true });
@@ -26,22 +26,34 @@ async function generateNestProject(data) {
     const servicesNames = idlProgram.serviceNames().filter(serviceName => serviceName != 'KeyringService');
     const readmePath = path_1.default.join(nestjsPath, 'README.md');
     const readmeContent = fs_extra_1.default.readFileSync(readmePath, 'utf8');
-    const temp = readmeContent.indexOf('<p align="center">');
-    let readmeFileContent = readmeContent.substring(0, temp);
+    const nextjsImageIndex = readmeContent.indexOf('<p align="center">');
+    let readmeFileContent = readmeContent.substring(0, nextjsImageIndex);
+    const modulesSubtitleIndex = readmeFileContent.indexOf('### Modules:');
+    let readmeFirstPart = readmeFileContent.substring(0, modulesSubtitleIndex - 1);
+    let readmeSecondPart = readmeFileContent.substring(modulesSubtitleIndex + 14);
+    let modulesNames = [];
+    for (const serviceName of servicesNames) {
+        modulesNames.push(`- ${serviceName}: **Your module description.**`);
+    }
     const lines = [
-        readmeFileContent,
+        readmeFirstPart,
+        "### Modules:",
+        "",
+        ...modulesNames,
+        readmeSecondPart
     ];
     lines.push('### Nestjs url');
-    lines.push('Following are the available url for nestjs server based on the provided idl:');
+    lines.push('Following are the available url for nestjs server based on the provided idl:\n');
     for (const serviceName of servicesNames) {
         const moduleUrls = (0, module_generator_1.moduleGenerator)(serviceName, nestJsSrcDir, idlProgram, port);
         moduleUrls.forEach(url => {
             const { serviceName, funcName, url: urlStr, isQuery } = url;
             const functionType = !url.isQuery ? 'command' : 'query';
-            lines.push(`- Url for ${funcName} ${functionType} in service ${serviceName}: *${urlStr}*`);
+            lines.push(`- Url for \`${funcName}\` ${functionType} in service \`${serviceName}\`: *${urlStr}*`);
         });
+        lines.push("");
     }
-    lines.push('### Signless calls:');
+    lines.push('\n### Signless calls:');
     lines.push(`1. User register: http://localhost:${port}/auth/register`);
     lines.push('\n    You need to send the next json data to the server with the user info:');
     lines.push('  \`\`\`javascript');
